@@ -37,14 +37,11 @@
             ipc.on("resultSent", function(evt, result){
                 let resultEl = document.getElementById("movieList");
                 resultjson = {"data": result};
-                console.log(resultjson);
 
                 table = $('#movieData').DataTable({
                     "bAutoWidth": false,
                     "aaData": resultjson.data,
                     "createdRow": function( row, data, index ) {
-                        console.log(row);
-                        console.log(data["location"]);
                         row.cells[0].innerHTML = "<button type='button' onClick='playMovie(this)' id='play-button' class='" + data["location"] + "'>Play</button>";
                         for (var i = row.cells.length - 1; i > 0; i--) {
                             row.cells[i].setAttribute("contenteditable", true);
@@ -97,7 +94,6 @@
                 if (event.key === "Enter"){
                     //let tab = $('#movieData').DataTable();
                     event.preventDefault();
-                    console.log(event);
                     let update_value = event.target.innerText;
                     let update_column = event.target.getAttribute("db_col");
                     let update_id = event.target.getAttribute("db_id");
@@ -141,7 +137,6 @@
     <script>
         function playMovie(playbtn){
             movie = playbtn.getAttribute("class");
-            console.log(movie)
             ipc.send("play-movie", movie)
 
         }</script>

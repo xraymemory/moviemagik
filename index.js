@@ -38,7 +38,6 @@ app.on("ready", () => {
 	ipcMain.on("update-cell", function (event, value, db_column, id) {
 	
 		var raw_sql = "update `movies` set `"+db_column+"` = '"+value+"' where `entry_id`="+id
-		console.log(raw_sql);
 		knex.raw(raw_sql).then(function (result) {
 			console.log("Updated");
 		});
@@ -46,9 +45,8 @@ app.on("ready", () => {
 	});
 
 	ipcMain.on("play-movie", function (event, movie) {
-		console.log("Playing movie " + movie + " LOL");
-		var proc = child_process.spawn("/Applications/VLC.app/Contents/MacOS/VLC", [movie]);
 
+		var proc = child_process.spawn("/Applications/VLC.app/Contents/MacOS/VLC", [movie]);
 
 		// Handle VLC error output (from the process' stderr stream)
 		proc.stderr.on ("data", (data) => {
@@ -79,13 +77,9 @@ app.on("ready", () => {
 		console.log("test");
 		dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] }).then(function(result) {
 
-			console.log(result.filePaths)
-
 			let fullPath = result.filePaths[0] + '/'
 
 			fs.readdirSync(fullPath).forEach(file => {
-
-				console.log(file);
 
 				var fileInfo = new Map();
 
@@ -93,15 +87,13 @@ app.on("ready", () => {
 					fileInfo.set("title", path.basename(file));
 
 					getVideoDurationInSeconds(fullPath+file).then((duration) => {
+
 						var time = new Date(null);
 						time.setSeconds(duration);
 						formatTime = time.toISOString().substr(11, 8);
-						console.log(formatTime)
 						fileInfo.set("runtime", formatTime)
-						console.log(fileInfo)
-						console.log({title: file, runtime: formatTime})
 						knex('movies').insert({title: file, runtime: formatTime, location: fullPath+file}).then(function (result) {
-							console.log("okay?")
+							console.log("Inserted")
 						});
 
 					});
