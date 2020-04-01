@@ -1,0 +1,28 @@
+{
+  "name": "moviemagic",
+  "version": "4.20.0",
+  "description": "Simple and fast media library and organizer",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "rebuild": "electron-rebuild -f -w sqlite3"
+  },
+  "keywords": [],
+  "author": "MITCHy",
+  "license": "its yours",
+  "dependencies": {
+    "datatables.net-dt": "^1.10.20",
+    "electron": "^6.0.13",
+    "ffmetadata": "^1.6.0",
+    "ffprobe": "^1.1.0",
+    "get-video-duration": "^1.0.3",
+    "jquery": "^3.4.1",
+    "knex": ">=0.19.5",
+    "sqlite3": "^4.1.1",
+    "tablesort": "^5.2.0",
+    "tabulator-tables": "^4.5.3"
+  },
+  "devDependencies": {
+    "electron-rebuild": "^1.10.1"
+  }
+}
