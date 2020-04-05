@@ -3,7 +3,7 @@
 <head>
     <link rel="stylesheet" href="node_modules/datatables.net-dt/css/jquery.dataTables.css">
 
-    <title>Bayley's Magic Movie Time</title>
+    <title>Movie Magik</title>
     <script>
         const electron = require("electron");
         const { spawn } = require('child_process');     
@@ -47,7 +47,8 @@
                             row.cells[i].setAttribute("contenteditable", true);
                             row.cells[i].setAttribute("db_col", column_map[i] );
                             row.cells[i].setAttribute("db_id", data["entry_id"]);
-                        }
+                        };
+                        //row.cells[row.cells.length-1].innerHTML = "<button type='button'>Delete</button>";
                     },
                     "columns": [
                     {
@@ -108,7 +109,7 @@
 
 </head>
 <body>  
-    ✨Movie Magic✨
+    ✨Movie Magik✨
     <br>
     <br>
     <button type="button" id="dirs">Add directory</button>
@@ -128,6 +129,8 @@
                 <th>Sub Delay</th>
                 <th>Nick Cage?</th>
                 <th>Notes</th>
+                <th></th>
+
             </tr>
         </thead>
         <tbody>

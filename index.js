@@ -36,8 +36,9 @@ app.on("ready", () => {
 	});
 
 	ipcMain.on("update-cell", function (event, value, db_column, id) {
-	
+
 		var raw_sql = "update `movies` set `"+db_column+"` = '"+value+"' where `entry_id`="+id
+
 		knex.raw(raw_sql).then(function (result) {
 			console.log("Updated");
 		});
@@ -50,12 +51,12 @@ app.on("ready", () => {
 
 		// Handle VLC error output (from the process' stderr stream)
 		proc.stderr.on ("data", (data) => {
-		    console.error ("VLC: " + data.toString ());
+			console.error ("VLC: " + data.toString ());
 		});
 
 		// Optionally, also handle VLC general output (from the process' stdout stream)
 		proc.stdout.on ("data", (data) => {
-		    console.log ("VLC: " + data.toString ());
+			console.log ("VLC: " + data.toString ());
 		});
 
 		// Finally, detect when VLC has exited
@@ -74,39 +75,50 @@ app.on("ready", () => {
 
 
 	ipcMain.on('select-dirs', function () {
-		console.log("test");
-		dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] }).then(function(result) {
-
+		let files = dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] }).then((result) =>{
 			let fullPath = result.filePaths[0] + '/'
-
-			fs.readdirSync(fullPath).forEach(file => {
-
-				var fileInfo = new Map();
-
-				if (file.charAt(0) != "."){ 
-					fileInfo.set("title", path.basename(file));
-
-					getVideoDurationInSeconds(fullPath+file).then((duration) => {
-
-						var time = new Date(null);
-						time.setSeconds(duration);
-						formatTime = time.toISOString().substr(11, 8);
-						fileInfo.set("runtime", formatTime)
-						knex('movies').insert({title: file, runtime: formatTime, location: fullPath+file}).then(function (result) {
-							console.log("Inserted")
-						});
-
-					});
-				}
-
-			});
-
-			mainWindow.reload();
+			readDir(fullPath);
 		});
+
 
 	});
 
+	function readDir(fullPath) {
+
+		fs.readdirSync(fullPath).forEach(file => {
+
+			let stats = fs.statSync(fullPath+file);
+
+			if (stats.isDirectory()){
+				readDir(fullPath+file+'/');
+			}
+
+			var fileInfo = new Map();
+
+			if (file.charAt(0) != "."){ 
+				fileInfo.set("title", path.basename(file));
+
+				getVideoDurationInSeconds(fullPath+file).then((duration) => {
+
+					var time = new Date(null);
+					time.setSeconds(duration);
+					formatTime = time.toISOString().substr(11, 8);
+					fileInfo.set("runtime", formatTime)
+
+					knex('movies').insert({title: file, runtime: formatTime, location: fullPath+file}).then(function (result) {
+						console.log("Inserted")
+					});
+
+				});
+			}
+
+		});
+
+		mainWindow.reload();
+	};
+
 });
+
 
 
 
