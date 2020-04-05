@@ -1,4 +1,4 @@
-# MovieMagic
+# MovieMagik
 
 Demo media browser using Electron.
 
