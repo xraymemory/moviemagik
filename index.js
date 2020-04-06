@@ -94,8 +94,10 @@ app.on("ready", () => {
 			}
 
 			var fileInfo = new Map();
+			var allowedFiles = ['.mkv', '.m4a', '.mpg', '.mpeg4'];
+			var allowed = allowedFiles.includes(path.extname(fullPath+file));
 
-			if (file.charAt(0) != "."){ 
+			if (allowed){ 
 				fileInfo.set("title", path.basename(file));
 
 				getVideoDurationInSeconds(fullPath+file).then((duration) => {
