@@ -13,6 +13,8 @@
 
 
         const ipc = electron.ipcRenderer;
+        const fs = require('fs');
+
 
         var resultjson = null;
         var table = null;
@@ -30,14 +32,19 @@
             10: "custom"
         };
 
+        console.log(process.argv)
+
         document.addEventListener("DOMContentLoaded", function(){
 
             ipc.send("mainWindowLoaded")
 
-            ipc.on("resultSent", function(evt, result){
+            ipc.on("resultSent", function(evt, result, vlc_loc){
                 let resultEl = document.getElementById("movieList");
                 resultjson = {"data": result};
 
+                document.getElementById('vlc_loc_txt').value = vlc_loc;
+
+                $.fn.dataTable.ext.errMode = 'none'
                 table = $('#movieData').DataTable({
                     "bAutoWidth": false,
                     "aaData": resultjson.data,
@@ -48,7 +55,7 @@
                             row.cells[i].setAttribute("db_col", column_map[i] );
                             row.cells[i].setAttribute("db_id", data["entry_id"]);
                         };
-                        //row.cells[row.cells.length-1].innerHTML = "<button type='button'>Delete</button>";
+                        row.cells[row.cells.length-1].innerHTML = "<button type='button' onClick='deleteRow(this)' contenteditable='false' class='"+data["title"] +"'>Delete</button>";
                     },
                     "columns": [
                     {
@@ -78,11 +85,14 @@
                     },
                     {
                         "data": "custom"
-                    }
-                    ]
+                    },
+                    {   "title": "",
+                    "sortable": false
+                }
+                ]
 
 
-                })
+            })
             });
         });
 
@@ -91,7 +101,19 @@
               ipc.send("select-dirs");
 
           })
-        $('#movieData').on('keypress', 'tbody td', function (event) {
+
+            document.getElementById('vlc_loc_btn').addEventListener('click', () => {
+                ipc.send("change-vlc");
+            })
+
+            ipc.on("update-vlc-txt", function(event, data){
+                console.log("lol sup")
+                console.log(data);
+                document.getElementById('vlc_loc_txt').value = data;
+            });
+
+
+            $('#movieData').on('keypress', 'tbody td', function (event) {
                 if (event.key === "Enter"){
                     //let tab = $('#movieData').DataTable();
                     event.preventDefault();
@@ -135,13 +157,25 @@
         <tbody>
         </tbody>
     </table>
-
+    <br>
+    <br>
+    <input id="vlc_loc_txt" /><input type="submit" value="Change VLC location" id="vlc_loc_btn" />
+    <input id="root_dir" /><input type="submit" value="Change root directory"/>
+    <br>
+    <br>
     <script>
         function playMovie(playbtn){
             movie = playbtn.getAttribute("class");
             ipc.send("play-movie", movie)
 
-        }</script>
-    </body>
+        }
 
-    </html>
+        function deleteRow(delbtn){
+            movie = delbtn.getAttribute("class");
+            ipc.send("delete-row", movie)
+        }
+
+    </script>
+</body>
+
+</html>

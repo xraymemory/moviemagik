@@ -13,8 +13,17 @@ var knex = require("knex")({
 	}
 });
 
+var conf_vlc_loc;
+
+knex.raw("select value from config where key ='conf_vlc_loc'").then(function (result) {
+	console.log(result[0].value);
+	conf_vlc_loc = result[0].value;
+});
+
 app.on("ready", () => {
-	let mainWindow = new BrowserWindow({ height: 666, width: 888, show: false, webPreferences: {nodeIntegration: true}})
+
+
+	let mainWindow = new BrowserWindow({ height: 666, width: 888, show: false, webPreferences: {nodeIntegration: true, additionalArguments: [conf_vlc_loc, "lol"]}});
 	
 	if (process.env.DEBUG == 1){
 		mainWindow.webContents.openDevTools();
@@ -31,8 +40,9 @@ app.on("ready", () => {
 	ipcMain.on("mainWindowLoaded", function () {
 		let result = knex.select().from("movies")
 		result.then(function(rows){
-			mainWindow.webContents.send("resultSent", rows);
+			mainWindow.webContents.send("resultSent", rows, conf_vlc_loc);
 		})
+
 	});
 
 	ipcMain.on("update-cell", function (event, value, db_column, id) {
@@ -47,7 +57,29 @@ app.on("ready", () => {
 
 	ipcMain.on("play-movie", function (event, movie) {
 
-		var proc = child_process.spawn("/Applications/VLC.app/Contents/MacOS/VLC", [movie]);
+		//var vlc_loc = "/Applications/VLC.app/Contents/MacOS/VLC";
+
+		if (process.platform === "win32") {
+			console.log("Windoze");
+
+			// have to add config switch here
+			vlc_loc = "C:\\Program Files\\VLC\\vlc.exe";
+
+			// check if file is on ext drive or not
+			// and replace the prefix if so
+			try {
+				if (fs.existsSync(movie)) {
+					console.log("Okay");
+				}
+			} catch(err) {
+				let pwd = process.env.PORTABLE_EXECUTABLE_DIR;
+				let prefix = pwd.substr(0,2);
+				movie = movie.replace(/^.{2}/g, prefix);
+				console.log(movie);
+			}
+		};
+
+		var proc = child_process.spawn(conf_vlc_loc, [movie]);
 
 		// Handle VLC error output (from the process' stderr stream)
 		proc.stderr.on ("data", (data) => {
@@ -66,11 +98,23 @@ app.on("ready", () => {
 		});
 	})
 
+	ipcMain.on('delete-row', function (event, movie) {
+
+		var raw_sql = "delete from movies where title ='"+movie+"'";
+
+		knex.raw(raw_sql).then(function (result) {
+			console.log("Baleted");
+
+			mainWindow.reload();
+
+		});
+	});
+
+
 	ipcMain.on('drive-prefix', function () {
 		// Get windows drive prefix
 		let pwd = process.env.PORTABLE_EXECUTABLE_DIR;
 		let prefix = pwd.substr(0,3);
-		knex('config').insert({drive_prefix: prefix});
 	});
 
 
@@ -79,8 +123,17 @@ app.on("ready", () => {
 			let fullPath = result.filePaths[0] + '/'
 			readDir(fullPath);
 		});
+	});
 
+	ipcMain.on('change-vlc', function () {
+		let new_loc = dialog.showOpenDialog(mainWindow, { properties: ['openFile'] }).then((result) =>{
+			let path = result.filePaths[0] 
+			knex("config").where({key: "conf_vlc_loc"}).update({value: path}).then(function (result) {
+				console.log("LOL");
+				mainWindow.webContents.send("update-vlc-txt", path);
+			});
 
+		});
 	});
 
 	function readDir(fullPath) {
@@ -118,10 +171,7 @@ app.on("ready", () => {
 
 		mainWindow.reload();
 	};
-
 });
-
-
 
 
 app.on("window-all-closed", () => { app.quit() })
