@@ -8,9 +8,10 @@ Demo media browser using Electron.
 - Fast search and sorting
 - Update movie metadata in-place
 - Automatically launch file from app 
+- Auto scan and update added directories
+- Change drive prefix for file locations when plug and play on Windows
+
 
 # TO DO
 
-- Auto scan and update added directories
 - Extensible columns and tags
-- Change drive prefix for file locations when plug and play on Windows
