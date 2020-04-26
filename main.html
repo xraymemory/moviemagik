@@ -105,6 +105,12 @@
 
           })
 
+
+            document.getElementById('idx').addEventListener('click', () => {
+              ipc.send("load-xml");
+
+          })
+
             document.getElementById('vlc_loc_btn').addEventListener('click', () => {
                 ipc.send("change-vlc");
             })
@@ -145,7 +151,7 @@
     ✨Movie Magik✨
     <br>
     <br>
-    <button type="button" id="dirs">Add directory</button>
+    <button type="button" id="dirs">Add movies from folder</button>
     <br>
     <br>
     <table border='0' id="movieData" class="display">
@@ -172,6 +178,9 @@
     <br>
     <input id="vlc_loc_txt" readonly disabled /><input type="submit" value="Change VLC location" id="vlc_loc_btn" />
     <input id="root_dir_txt" readonly disabled /><input type="submit" value="Change root directory" id ="root_dir_btn" />
+    <br>
+    <br>
+    <button type="button" id="idx">Load index file</button>
     <br>
     <br>
     <script>

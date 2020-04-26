@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require("electron")
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
+const readline = require('readline');
 const { getVideoDurationInSeconds } = require('get-video-duration')
 var child_process = require ("child_process");
 
@@ -175,6 +176,34 @@ app.on("ready", () => {
 			});
 
 		});
+	});
+
+	ipcMain.on('load-xml', async function () {
+
+		let files = dialog.showOpenDialog(mainWindow, { properties: ['openFile'] }).then((result) =>{
+			let path = result.filePaths[0];
+			var data = fs.readFileSync(path);
+			lines = data.toString().split('\n');
+			for (line in lines){
+				values = lines[line].split('µ');
+
+				title = values[0];
+				year = values[2];
+				runtime = values[3];
+				language = values[4];
+				director = values[5];
+				dp = values[6];
+				color = values[7];
+				nickcage = values[9];
+				location = values[11];
+
+				knex('movies').insert({title: title, runtime: runtime, year: year, language: language, director: director, dp: dp, color: color, nickcage: nickcage, location: location}).then(function (result) {
+						console.log("Inserted")
+					});				
+
+			}
+		});
+
 	});
 
 	function readDir(fullPath) {
