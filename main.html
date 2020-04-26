@@ -38,11 +38,13 @@
 
             ipc.send("mainWindowLoaded")
 
-            ipc.on("resultSent", function(evt, result, vlc_loc){
+            ipc.on("resultSent", function(evt, result, vlc_loc, root_dir){
                 let resultEl = document.getElementById("movieList");
                 resultjson = {"data": result};
 
                 document.getElementById('vlc_loc_txt').value = vlc_loc;
+                document.getElementById('root_dir_txt').value = root_dir;
+
 
                 $.fn.dataTable.ext.errMode = 'none'
                 table = $('#movieData').DataTable({
@@ -99,6 +101,7 @@
         window.onload = function() {
             document.getElementById('dirs').addEventListener('click', () => {
               ipc.send("select-dirs");
+                mainWindow.reload();
 
           })
 
@@ -110,6 +113,14 @@
                 console.log("lol sup")
                 console.log(data);
                 document.getElementById('vlc_loc_txt').value = data;
+            });
+
+           document.getElementById('root_dir_btn').addEventListener('click', () => {
+                ipc.send("change-root");
+            })
+
+            ipc.on("update-root-txt", function(event, data){
+                document.getElementById('root_dir_txt').value = data;
             });
 
 
@@ -159,8 +170,8 @@
     </table>
     <br>
     <br>
-    <input id="vlc_loc_txt" /><input type="submit" value="Change VLC location" id="vlc_loc_btn" />
-    <input id="root_dir" /><input type="submit" value="Change root directory"/>
+    <input id="vlc_loc_txt" readonly disabled /><input type="submit" value="Change VLC location" id="vlc_loc_btn" />
+    <input id="root_dir_txt" readonly disabled /><input type="submit" value="Change root directory" id ="root_dir_btn" />
     <br>
     <br>
     <script>

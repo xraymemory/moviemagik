@@ -14,16 +14,28 @@ var knex = require("knex")({
 });
 
 var conf_vlc_loc;
+var root_dir_loc;
 
 knex.raw("select value from config where key ='conf_vlc_loc'").then(function (result) {
 	console.log(result[0].value);
 	conf_vlc_loc = result[0].value;
+	if (conf_vlc_loc == null) {
+		conf_vlc_loc = "LOL CANT FIND IT";
+	}
+});
+
+knex.raw("select value from config where key ='root_dir_loc'").then(function (result) {
+	if (result[0] !== undefined){
+		root_dir_loc = result[0].value;
+	} else {
+		root_dir_loc = "AH DANG";
+	}
 });
 
 app.on("ready", () => {
 
 
-	let mainWindow = new BrowserWindow({ height: 666, width: 888, show: false, webPreferences: {nodeIntegration: true, additionalArguments: [conf_vlc_loc, "lol"]}});
+	let mainWindow = new BrowserWindow({ height: 666, width: 888, show: false, webPreferences: {nodeIntegration: true, additionalArguments: [conf_vlc_loc, root_dir_loc]}});
 	
 	if (process.env.DEBUG == 1){
 		mainWindow.webContents.openDevTools();
@@ -38,9 +50,29 @@ app.on("ready", () => {
 	mainWindow.once("ready-to-show", () => { mainWindow.show() })
 
 	ipcMain.on("mainWindowLoaded", function () {
+
+		knex.raw("select value from config where key ='conf_vlc_loc'").then(function (result) {
+			console.log(result[0].value);
+			conf_vlc_loc = result[0].value;
+			if (conf_vlc_loc == null) {
+				conf_vlc_loc = "LOL CANT FIND IT";
+			}
+		});
+
+		knex.raw("select value from config where key ='root_dir_loc'").then(function (result) {
+			if (result[0] !== undefined){
+				root_dir_loc = result[0].value;
+			} else {
+				root_dir_loc = "AH DANG";
+			}
+		});		
+		console.log("LOL LOADED");
+
+		readDir(root_dir_loc);
+
 		let result = knex.select().from("movies")
 		result.then(function(rows){
-			mainWindow.webContents.send("resultSent", rows, conf_vlc_loc);
+			mainWindow.webContents.send("resultSent", rows, conf_vlc_loc, root_dir_loc);
 		})
 
 	});
@@ -61,9 +93,6 @@ app.on("ready", () => {
 
 		if (process.platform === "win32") {
 			console.log("Windoze");
-
-			// have to add config switch here
-			vlc_loc = "C:\\Program Files\\VLC\\vlc.exe";
 
 			// check if file is on ext drive or not
 			// and replace the prefix if so
@@ -136,6 +165,18 @@ app.on("ready", () => {
 		});
 	});
 
+	ipcMain.on('change-root', function () {
+		let new_loc = dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] }).then((result) =>{
+			let path = result.filePaths[0]  + '/'
+			knex("config").where({key: "root_dir_loc"}).update({value: path}).then(function (result) {
+				console.log("LOL");
+				console.log(path);
+				mainWindow.webContents.send("update-root-txt", path);
+			});
+
+		});
+	});
+
 	function readDir(fullPath) {
 
 		fs.readdirSync(fullPath).forEach(file => {
@@ -168,8 +209,6 @@ app.on("ready", () => {
 			}
 
 		});
-
-		mainWindow.reload();
 	};
 });
 
