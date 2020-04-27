@@ -48,6 +48,9 @@
 
                 $.fn.dataTable.ext.errMode = 'none'
                 table = $('#movieData').DataTable({
+                    "oLanguage": {
+                        "sEmptyTable": "Load in some movies"
+                    },
                     "bAutoWidth": false,
                     "aaData": resultjson.data,
                     "createdRow": function( row, data, index ) {
@@ -116,8 +119,6 @@
             })
 
             ipc.on("update-vlc-txt", function(event, data){
-                console.log("lol sup")
-                console.log(data);
                 document.getElementById('vlc_loc_txt').value = data;
             });
 

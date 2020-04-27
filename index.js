@@ -53,7 +53,6 @@ app.on("ready", () => {
 	ipcMain.on("mainWindowLoaded", function () {
 
 		knex.raw("select value from config where key ='conf_vlc_loc'").then(function (result) {
-			console.log(result[0].value);
 			conf_vlc_loc = result[0].value;
 			if (conf_vlc_loc == null) {
 				conf_vlc_loc = "LOL CANT FIND IT";
@@ -67,7 +66,6 @@ app.on("ready", () => {
 				root_dir_loc = "AH DANG";
 			}
 		});		
-		console.log("LOL LOADED");
 
 		try {
 			readDir(root_dir_loc);
@@ -144,14 +142,6 @@ app.on("ready", () => {
 		});
 	});
 
-
-	ipcMain.on('drive-prefix', function () {
-		// Get windows drive prefix
-		let pwd = process.env.PORTABLE_EXECUTABLE_DIR;
-		let prefix = pwd.substr(0,3);
-	});
-
-
 	ipcMain.on('select-dirs', function () {
 		let files = dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] }).then((result) =>{
 			let fullPath = result.filePaths[0] + '/'
@@ -163,7 +153,6 @@ app.on("ready", () => {
 		let new_loc = dialog.showOpenDialog(mainWindow, { properties: ['openFile'] }).then((result) =>{
 			let path = result.filePaths[0] 
 			knex("config").where({key: "conf_vlc_loc"}).update({value: path}).then(function (result) {
-				console.log("LOL");
 				mainWindow.webContents.send("update-vlc-txt", path);
 			});
 
@@ -172,9 +161,6 @@ app.on("ready", () => {
 
 	ipcMain.on('change-root', function () {
 		let new_loc = dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] }).then((result) =>{
-			let path = result.filePaths[0]  + '/'
-			console.log("Why dont it work");
-			console.log(result.filePaths);
 			if (result.filePaths === undefined || result.filePaths == 0){
 				console.log("No dir selected");
 			} else {
