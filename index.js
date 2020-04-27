@@ -69,7 +69,11 @@ app.on("ready", () => {
 		});		
 		console.log("LOL LOADED");
 
-		readDir(root_dir_loc);
+		try {
+			readDir(root_dir_loc);
+		 }	catch(err) {
+		 	console.log("dang");
+		 }
 
 		let result = knex.select().from("movies")
 		result.then(function(rows){
@@ -169,16 +173,20 @@ app.on("ready", () => {
 	ipcMain.on('change-root', function () {
 		let new_loc = dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] }).then((result) =>{
 			let path = result.filePaths[0]  + '/'
-			knex("config").where({key: "root_dir_loc"}).update({value: path}).then(function (result) {
-				console.log("LOL");
-				console.log(path);
-				mainWindow.webContents.send("update-root-txt", path);
-			});
+			console.log("Why dont it work");
+			console.log(result.filePaths);
+			if (result.filePaths === undefined || result.filePaths == 0){
+				console.log("No dir selected");
+			} else {
+				knex("config").where({key: "root_dir_loc"}).update({value: path}).then(function (result) {
+					mainWindow.webContents.send("update-root-txt", path);
+				});
+			}
 
 		});
 	});
 
-	ipcMain.on('load-xml', async function () {
+	ipcMain.on('load-idx', async function () {
 
 		let files = dialog.showOpenDialog(mainWindow, { properties: ['openFile'] }).then((result) =>{
 			let path = result.filePaths[0];
@@ -202,6 +210,8 @@ app.on("ready", () => {
 					});				
 
 			}
+
+			mainWindow.reload();
 		});
 
 	});
