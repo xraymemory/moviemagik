@@ -29,7 +29,7 @@ knex.raw("select value from config where key ='root_dir_loc'").then(function (re
 	if (result[0] !== undefined){
 		root_dir_loc = result[0].value;
 	} else {
-		root_dir_loc = "AH DANG";
+		root_dir_loc = "/tmp/";
 	}
 });
 
@@ -63,7 +63,7 @@ app.on("ready", () => {
 			if (result[0] !== undefined){
 				root_dir_loc = result[0].value;
 			} else {
-				root_dir_loc = "AH DANG";
+				root_dir_loc = "/tmp/";
 			}
 		});		
 
@@ -146,6 +146,7 @@ app.on("ready", () => {
 		let files = dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] }).then((result) =>{
 			let fullPath = result.filePaths[0] + '/'
 			readDir(fullPath);
+			mainWindow.reload();
 		});
 	});
 
@@ -164,6 +165,8 @@ app.on("ready", () => {
 			if (result.filePaths === undefined || result.filePaths == 0){
 				console.log("No dir selected");
 			} else {
+				let path = result.filePaths[0] 
+				console.log(path);
 				knex("config").where({key: "root_dir_loc"}).update({value: path}).then(function (result) {
 					mainWindow.webContents.send("update-root-txt", path);
 				});
@@ -209,7 +212,13 @@ app.on("ready", () => {
 			let stats = fs.statSync(fullPath+file);
 
 			if (stats.isDirectory()){
-				readDir(fullPath+file+'/');
+				if (process.platform == "win32") {
+					readDir(fullPath+file+'\\');
+
+				}
+				else {
+					readDir(fullPath+file+'/');
+				}
 			}
 
 			var fileInfo = new Map();
