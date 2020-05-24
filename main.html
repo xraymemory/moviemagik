@@ -6,9 +6,9 @@
     <title>Movie Magik</title>
     <script>
         const electron = require("electron");
-        const { spawn } = require('child_process');     
+        const { spawn } = require('child_process');
 
-        var dt = require( 'datatables.net-dt' )();
+        var dt = require('datatables.net-dt')();
         window.jQuery = window.$ = require('jquery');
 
 
@@ -34,13 +34,13 @@
 
         console.log(process.argv)
 
-        document.addEventListener("DOMContentLoaded", function(){
+        document.addEventListener("DOMContentLoaded", function () {
 
             ipc.send("mainWindowLoaded")
 
-            ipc.on("resultSent", function(evt, result, vlc_loc, root_dir){
+            ipc.on("resultSent", function (evt, result, vlc_loc, root_dir) {
                 let resultEl = document.getElementById("movieList");
-                resultjson = {"data": result};
+                resultjson = { "data": result };
 
                 document.getElementById('vlc_loc_txt').value = vlc_loc;
                 document.getElementById('root_dir_txt').value = root_dir;
@@ -51,88 +51,97 @@
                     "oLanguage": {
                         "sEmptyTable": "Load in some movies"
                     },
-                    "bAutoWidth": false,
                     "aaData": resultjson.data,
-                    "createdRow": function( row, data, index ) {
-                        row.cells[0].innerHTML = "<button type='button' onClick='playMovie(this)' id='play-button' class='" + data["location"] + "'>Play</button>";
+                    "createdRow": function (row, data, index) {
+                        try {
+                            var escaped_name = data["title"].replace("'", "&#39;");
+                            var escaped_loc = data["location"].replace("'", "&#39;");
+                        } catch {
+                            var escaped_name = data["title"];
+                            var escaped_loc = data["location"];
+                        }
+                        console.log(escaped_name);
+                        row.cells[0].innerHTML = "<button type='button' onClick='playMovie(this)' id='play-button' class='" + escaped_loc + "'>Play</button>";
                         for (var i = row.cells.length - 1; i > 0; i--) {
                             row.cells[i].setAttribute("contenteditable", true);
-                            row.cells[i].setAttribute("db_col", column_map[i] );
+                            row.cells[i].setAttribute("db_col", column_map[i]);
                             row.cells[i].setAttribute("db_id", data["entry_id"]);
                         };
-                        row.cells[row.cells.length-1].innerHTML = "<button type='button' onClick='deleteRow(this)' contenteditable='false' class='"+data["title"] +"'>Delete</button>";
+ 
+                        row.cells[row.cells.length - 1].innerHTML = "<button type='button' onClick='deleteRow(this)' contenteditable='false' class='" + escaped_name + "'>Delete</button>";
                     },
                     "columns": [
-                    {
-                        "data": "location"
-                    },{
-                        "data": "title"
-                    }, {
-                        "data": "year"
-                    }, {
-                        "data": "runtime"
-                    }, {
-                        "data": "language"
-                    }, {
-                        "data": "director"
-                    },
-                    {
-                        "data": "dp"
-                    },
-                    {
-                        "data": "color"
-                    },
-                    {
-                        "data": "subdelay"
-                    },
-                    {
-                        "data": "nickcage"
-                    },
-                    {
-                        "data": "custom"
-                    },
-                    {   "title": "",
-                    "sortable": false
-                }
-                ]
+                        {
+                            "data": "location"
+                        }, {
+                            "data": "title"
+                        }, {
+                            "data": "year"
+                        }, {
+                            "data": "runtime"
+                        }, {
+                            "data": "language"
+                        }, {
+                            "data": "director"
+                        },
+                        {
+                            "data": "dp"
+                        },
+                        {
+                            "data": "color"
+                        },
+                        {
+                            "data": "subdelay"
+                        },
+                        {
+                            "data": "nickcage"
+                        },
+                        {
+                            "data": "custom"
+                        },
+                        {
+                            "title": "",
+                            "sortable": false
+                        }
+                    ]
 
 
-            })
+                })
             });
         });
 
-        window.onload = function() {
+        window.onload = function () {
             document.getElementById('dirs').addEventListener('click', () => {
-              ipc.send("select-dirs");
+                ipc.send("select-dirs");
                 mainWindow.reload();
 
-          })
+            })
 
 
             document.getElementById('idx').addEventListener('click', () => {
-              ipc.send("load-idx");
+                ipc.send("load-idx");
 
-          })
+            })
+
+            document.getElementById('resetdb').addEventListener('click', () => {
+                ipc.send("reset-db");
+            })
 
             document.getElementById('vlc_loc_btn').addEventListener('click', () => {
                 ipc.send("change-vlc");
             })
 
-            ipc.on("update-vlc-txt", function(event, data){
+            ipc.on("update-vlc-txt", function (event, data) {
                 document.getElementById('vlc_loc_txt').value = data;
             });
 
-           document.getElementById('root_dir_btn').addEventListener('click', () => {
-                ipc.send("change-root");
-            })
 
-            ipc.on("update-root-txt", function(event, data){
+            ipc.on("update-root-txt", function (event, data) {
                 document.getElementById('root_dir_txt').value = data;
             });
 
-
             $('#movieData').on('keypress', 'tbody td', function (event) {
-                if (event.key === "Enter"){
+                if (event.key === "Enter") {
                     //let tab = $('#movieData').DataTable();
                     event.preventDefault();
                     let update_value = event.target.innerText;
@@ -148,11 +157,12 @@
     </script>
 
 </head>
-<body>  
+<body>
     ✨Movie Magik✨
     <br>
     <br>
-    <button type="button" id="dirs">Add movies from folder</button>
+    <button type="button" id="dirs">Sync movies from folder</button>
+    <input id="root_dir_txt" readonly disabled />
     <br>
     <br>
     <table border='0' id="movieData" class="display">
@@ -175,23 +185,26 @@
         <tbody>
         </tbody>
     </table>
+
     <br>
     <br>
     <input id="vlc_loc_txt" readonly disabled /><input type="submit" value="Change VLC location" id="vlc_loc_btn" />
-    <input id="root_dir_txt" readonly disabled /><input type="submit" value="Change root directory" id ="root_dir_btn" />
+
     <br>
     <br>
     <button type="button" id="idx">Load index file</button>
+
     <br>
     <br>
+    <button type="button" id="resetdb">Reset DB</button>
     <script>
-        function playMovie(playbtn){
+        function playMovie(playbtn) {
             movie = playbtn.getAttribute("class");
             ipc.send("play-movie", movie)
 
         }
 
-        function deleteRow(delbtn){
+        function deleteRow(delbtn) {
             movie = delbtn.getAttribute("class");
             ipc.send("delete-row", movie)
         }
