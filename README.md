@@ -2,6 +2,8 @@
 
 A snappy lil media browser built as a way to learn Electron.
 
+![MovieMagic](https://i.imgur.com/LQPpZCT.gif)
+
 # Features
 
 - Portable, no installation needed
