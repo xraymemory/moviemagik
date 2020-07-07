@@ -12,7 +12,7 @@
   "license": "its yours",
   "dependencies": {
     "datatables.net-dt": "^1.10.20",
-    "electron": "^6.0.13",
+    "electron": "^9.1.0",
     "electron-packager": "^14.2.1",
     "ffmetadata": "^1.6.0",
     "ffprobe": "^1.1.0",
